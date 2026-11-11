@@ -7850,3 +7850,17 @@ m{}       30064  -0.322573 $ Zn64
 """
 matNum = matInsert('ZnSAgPHOSPHORPOWDEREJ600forNeutronDetectors', ZnSAgPHOSPHORPOWDEREJ600forNeutronDetectorsStr, -4.09)
 
+coriumStr = """\
+c      Corium:Elephants Foot corium (RBMK, oxidized, concrete-rich)
+c      AKA: None
+c      rho: 6.60000 g/cc
+m{}       92235.80c  2.90E-04 $ U-235 from RBMK fuel (2.0 percent enrichment)
+     92238.80c  1.43E-02 $ U-238 from RBMK fuel matrix
+     40000.80c  4.40E-03 $ Zirconium (natural) from oxidized Zr cladding (ZrO2)
+     26000.80c  2.10E-03 $ Iron from steel structures, modeled as FeO
+     14000.80c  1.25E-02 $ Silicon from concrete interaction (SiO2 glass former)
+     20040.80c  3.30E-03 $ Calcium from concrete decomposition (CaO)
+     8016.80c   5.45E-02 $ Oxygen from UO2, ZrO2, SiO2, CaO, FeO (oxidized corium)
+"""
+matNum = matInsert('Corium', coriumStr, -6.6)
+

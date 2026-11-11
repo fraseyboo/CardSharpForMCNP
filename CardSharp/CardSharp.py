@@ -443,7 +443,7 @@ class CardDeck:
     surfaceString += toMCNP80String('c ---%s'%(descrStr))
 
     #c surface/macrobody number, transformation number optional, C/X, yPos,zPos, radius'
-    surfaceString += toMCNP80String('%s %s SQ %.4f %.4f %.4f  %.4f %.4f %.4f %.4f  %.4f %.4f %.4f'%(surfaceNum, trNumString, A,B,C,D,E,F,G,*xyz))
+    surfaceString += toMCNP80String('%s %s SQ %s' % (surfaceNum, trNumString, ' '.join(format(float(v), '.17g') for v in (A,B,C,D,E,F,G,*xyz))))
   
     self.collectedSurfaceStrings += surfaceString
     
@@ -469,7 +469,7 @@ class CardDeck:
     surfaceString += toMCNP80String('c ---%s'%(descrStr))
 
     #c surface/macrobody number, transformation number optional, C/X, yPos,zPos, radius'
-    surfaceString += toMCNP80String('%s %s GQ %.4f %.4f %.4f  %.4f %.4f %.4f %.4f  %.4f %.4f %.4f'%(surfaceNum, trNumString, A,B,C,D,E,F,G,H,I,J))
+    surfaceString += toMCNP80String('%s %s GQ %s' % (surfaceNum, trNumString, ' '.join(format(float(v), '.17g') for v in (A,B,C,D,E,F,G,H,I,J))))
   
     self.collectedSurfaceStrings += surfaceString
     
@@ -583,7 +583,9 @@ class CardDeck:
         print('DENSITY IS POSITIVE: ARE YOU SURE YOU WANTED atoms/barn-cm, NOT g/cc? ', name)
       if density == 0: # use default density
         density = defaultDensity
-      densityStr = '%.4f'%(density)
+      # Significant digits preserve low-density gases instead of rounding
+      # them to four decimal places (or even to zero).
+      densityStr = '%.10g'%(density)
     #---------
     cellString = toMCNP80String('c ---%s----'%(name))
     
@@ -655,7 +657,13 @@ class CardDeck:
   
     self.collectedCellStrings += cellString
     
-    self.cellNumNameList.append((newCellNum, name, matNum, uni))
+    # A LIKE/BUT card inherits its material from the referenced cell.
+    inherited_mat_num = 0
+    for old_num, _old_name, material_num, _old_uni in self.cellNumNameList:
+      if int(str(old_num)) == int(str(oldCellNum)):
+        inherited_mat_num = material_num
+        break
+    self.cellNumNameList.append((newCellNum, name, inherited_mat_num, uni))
   
     printIfShow(cellString)
     return newCellNum
@@ -776,7 +784,8 @@ class CardDeck:
     macroString += toMCNP80String('c ---%s'%(descrStr))  
     #c surface/macrobody number, transformation number optional, RCC, xPos,yPos,zPos, axisX, axisY, axisZ, radius'
     #801 1 rcc 0  0  0  1  1  1  5
-    macroString += toMCNP80String('%s %s RCC %.4f %.4f %.4f  %.4f %.4f %.4f  %.4f'\
+    # Retain small conductor offsets and thin cylindrical layers in centimetres.
+    macroString += toMCNP80String('%s %s RCC %.12g %.12g %.12g  %.12g %.12g %.12g  %.12g'\
                              %(surfaceNum, trNumString, *base, *axis, radius))
   
     self.collectedSurfaceStrings += macroString
@@ -1043,7 +1052,7 @@ class CardDeck:
     macroString += toMCNP80String('c ---%s'%(descrStr))  
     #c surface/macrobody number, transformation number optional, RCC, xPos,yPos,zPos, axisX, axisY, axisZ, radius'
     #801 1 rcc 0  0  0  1  1  1  5
-    macroString += toMCNP80String('%s %s RHP %.4f %.4f %.4f  %.4f %.4f %.4f  %.4f %.4f %.4f'\
+    macroString += toMCNP80String('%s %s RHP %.12g %.12g %.12g  %.12g %.12g %.12g  %.12g %.12g %.12g'\
                              %(surfaceNum, trNumString, *base, *axis, *r))
   
     self.collectedSurfaceStrings += macroString
@@ -1147,7 +1156,7 @@ class CardDeck:
     macroString += toMCNP80String('c ---%s'%(descrStr))  
     #c surface/macrobody number, transformation number optional, RCC, xPos,yPos,zPos, axisX, axisY, axisZ, radius'
     #801 1 rcc 0  0  0  1  1  1  5
-    macroString += toMCNP80String('%s %s TRC %.4f %.4f %.4f   %.4f %.4f %.4f  %.4f %.4f'\
+    macroString += toMCNP80String('%s %s TRC %.12g %.12g %.12g   %.12g %.12g %.12g  %.12g %.12g'\
                              %(surfaceNum, trNumString, *base, *height, radiusBase, radiusTop))
   
     self.collectedSurfaceStrings += macroString
@@ -1298,7 +1307,8 @@ class CardDeck:
     macroString += toMCNP80String('c ---%s'%(descrStr))  
     #c surface/macrobody number, transformation number optional, RCC, xPos,yPos,zPos, axisX, axisY, axisZ, radius'
     #801 1 rcc 0  0  0  1  1  1  5
-    macroString += toMCNP80String('%s %s BOX %.4f %.4f %.4f   %.4f %.4f %.4f   %.4f %.4f %.4f  %.4f %.4f %.4f'\
+    # Preserve oblique thin-wall faces; four decimals can move them by microns.
+    macroString += toMCNP80String('%s %s BOX %.12g %.12g %.12g   %.12g %.12g %.12g   %.12g %.12g %.12g  %.12g %.12g %.12g'\
                              %(surfaceNum, trNumString, *v, *a1, *a2, *a3))
   
     self.collectedSurfaceStrings += macroString
@@ -1588,7 +1598,7 @@ class CardDeck:
     if shift[0]==0 and shift[1]==0 and shift[2]==0 and rotMatrix is None:
       trString = ''
     elif rotMatrix is None:
-      trString = '*TR%d  %.6f %.6f %.6f'%(*shift,)
+      trString = '*TR%d  %.6f %.6f %.6f'%(trNum, *shift)
     else:
       trString = trTemplate%(trNum, *shift, *rotMatrix)
 
@@ -3116,7 +3126,7 @@ c VOID     $ make all materials void (VisEd particle tracking) (still need xsdir
     self.collectedPhysicsStrings += toMCNP80String(s)
   def insertIntoOutputSection(self, s):
     """  """
-    self.collectedPhysicsStrings += toMCNP80String(s)
+    self.collectedOutputControlStrings += toMCNP80String(s)
 #############################################################################
   def assembleDeck(self, titleCard, macroString='Auto', cellString='Auto', trString='Auto', matString='Auto',  
                    srcString='Auto', tallyString='Auto', physicsString='Auto', outputControlString='Auto'):
