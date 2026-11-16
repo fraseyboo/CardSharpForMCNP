@@ -1386,8 +1386,10 @@ class CardDeck:
     macroString += toMCNP80String('c ---%s'%(descrStr))  
     #c surface/macrobody number, transformation number optional, RCC, xPos,yPos,zPos, axisX, axisY, axisZ, radius'
     #801 1 rcc 0  0  0  1  1  1  5
-    macroString += toMCNP80String('%s %s ELL %.4f %.4f %.4f   %.4f %.4f %.4f  %.4f'\
-                             %(surfaceNum, trNumString, *v1, *v2, Rm))
+    values = ' '.join(format(float(value), '.17g')
+                      for value in (*v1, *v2, Rm))
+    macroString += toMCNP80String(
+        '%s %s ELL %s' % (surfaceNum, trNumString, values))
   
     self.collectedSurfaceStrings += macroString
   
